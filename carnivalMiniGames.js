@@ -569,7 +569,7 @@ function wallPhaseLv() {
    wplGhost = new Player(50);
   }
 
-  if(frameCount % 400 == 0) {
+  if(frameCount % 500 == 0) {
     cWalls.push(new Obstacle());
   }
 
