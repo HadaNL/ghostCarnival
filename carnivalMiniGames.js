@@ -5,6 +5,8 @@ let wpScore = 0;
 let moveSpeed = 6;
 let allowMovement = true;
 
+
+let mainMenuButton;
 let playerAvatar;
 let wplGhost;
 let points;
@@ -109,6 +111,9 @@ function setup() {
 
   //position canvas in the center
   cnv.position(ciX, ciY);
+
+  //create main menu button
+  mainMenuButton = new mButton(650,350,200,70,30,255,94,28,255,2);
 
    //create Player
   playerAvatar = new Player(25);
@@ -509,9 +514,6 @@ function mainMenu() {
   let mW = 700;
   let mH = 400;
   let mC = 0;
-
-  //set up new Button
-  mainMenuButton = new mButton(650,350,200,70,30,255,94,28,255,2);
 
   image(mmBackground,posX,posY,cnvW,cnvH);
 
