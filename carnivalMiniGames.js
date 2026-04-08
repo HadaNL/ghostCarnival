@@ -4,6 +4,7 @@ let wpScore = 0;
 
 let moveSpeed = 6;
 let allowMovement = true;
+let goToScene2 = false;
 
 
 let mainMenuButton;
@@ -159,14 +160,19 @@ function draw() {
 } 
 
 function keyPressed() {
+  if((scene === 1) && (allowMovement === false)) {
+    if(keyCode === ENTER) {
+      goToScene2 = true;
+    }
+  }
+
+  
   if((key === 'a' || key === 'A') || 
      (key === 'w' || key === 'W') || 
      (key === 'd' || key === 'D') || 
      (key === 's' || key === 'S')) {
     playerAvatar.move();
   }
-
-
 
   if((key !== 'a' || key !== 'A') && 
      (key !== 'w' || key !== 'W') &&
@@ -319,7 +325,10 @@ class fairBooth {
       pop();
 
       }
-      obj.boothId(this.fbScene);
+
+      if(goToScene2) {
+        obj.boothId(this.fbScene);
+      }
     }
 
     let d;
@@ -360,6 +369,10 @@ class Player {
 
     this.isPhasing = false;
     this.imgOpacity = 255;
+  }
+
+  wplCollision() {
+
   }
 
   wplShow() {
