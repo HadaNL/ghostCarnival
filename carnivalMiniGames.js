@@ -183,6 +183,8 @@ function mvRestriction() {
 }
 
 function mousePressed() {
+  userStartAudio();
+
   if(scene === 0) {
     mainMenuButton.clicked();
   }
@@ -218,7 +220,7 @@ class elementsUI {
 class mButton {
   constructor(bX,bY,bW,bH,bR,bcR,bcG,bcB,bS,bsW) {
     //dimension variables and radius
-    this.x = bX;;
+    this.x = bX;
     this.y = bY;
     this.w = bW;
     this.h = bH;
