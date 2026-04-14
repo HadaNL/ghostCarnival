@@ -1011,7 +1011,7 @@ function wallPhaseLv() {
   score.showUI();
 
   if(wplGhost === null) {
-    winConditionTriggerValue = floor(random(5,50));
+    winConditionTriggerValue = floor(random(5,16));
     wplGhost = new Player(50);
   }
 
