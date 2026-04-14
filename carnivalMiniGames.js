@@ -29,6 +29,24 @@ let initGrL = false;
 let reachedfLine = false;
 let nTraps = 0;
 
+//variables used in scene4
+let chestCounter = 0;
+let advanceButton;
+let assetsReady = false;
+let probabilityValue;
+let clAvatar = null;
+let collect;
+let comeback;
+let hideMsg = false;
+let chestOne = null;
+let chestTwo = null;
+let chestThree = null;
+let chestFour = null;
+
+//variables scene 5
+let getting_Balance = false;
+let avail_Balance = 0;
+
 
 //hub
 let pValue = 0;
@@ -60,7 +78,7 @@ let insMsgLv2B = 'press "Enter" to start';
 let insMsgLv2 = 'Use "Space" key to move ghost \n' + insMsgLv2B;
 
 let insMsgLv3B = 'press "Enter" to start';
-let insMsgLv3 = 'Use "Space" key to move ghost\n' + insMsgLv3B;
+let insMsgLv3 = 'Use "WASD" keys to move ghost\n' + insMsgLv3B;
 
 let insMsgPrLvB = 'press "Enter" continue';
 let insMsgPrLv = 'Click on item to buy\n' + insMsgPrLvB;
@@ -74,6 +92,10 @@ let grEndTxgh = 'Blue Ghost Won\n' + grEndTxghB;
 let grEndTxTieB = 'Prize: 50';
 let grEndTxTie = "It's a Tie\n" + grEndTxTieB;
 
+let mCollectText = 'Collect your reward!';
+let mComebackText = 'This world works in mysterious ways.\n' +
+                    'There is nothing for you in this room yet.\n' +
+                    'Comeback later!';
 
 let moveSpeed = 6;
 let allowMovement = true;
@@ -116,6 +138,7 @@ let mlSound;
 let wplSound;
 let grlSound;
 let prlSound;
+let clSound;
 //---
 
 //--- Bg Images Variables
@@ -135,6 +158,7 @@ let wIsPressed = false;
 
 //array for sprites
 let playerSprite = [];
+let chestSprite = [];
 let boothName = ['scary','ballon','chase','prize'];
 
 //array for obstacles 
@@ -142,7 +166,17 @@ let cWalls = [];
 
  
 function preload() { 
-  
+  //---chestSprite
+  //--- wood chest
+  chestSprite[0] = loadImage("Assets/GhostCarnival/Lootboxes/lbWood.png");
+  //--- silver chest
+  chestSprite[1] = loadImage("Assets/GhostCarnival/Lootboxes/lbSilver.png");
+  //--- gold chest
+  chestSprite[2] = loadImage("Assets/GhostCarnival/Lootboxes/lbGold.png");
+  //--- diamong chest
+  chestSprite[3] = loadImage("Assets/GhostCarnival/Lootboxes/lbDiamond.png");
+  //----
+
   //-------playerSprite
   //--- Wall Phase Ghost
   playerSprite[4] = loadImage("Assets/GhostCarnival/Character/wplGhostR.png");
@@ -159,7 +193,8 @@ function preload() {
   mlSound = loadSound("Assets/GhostCarnival/Sound/Track01.mp3");
   wplSound = loadSound("Assets/GhostCarnival/Sound/Track07.mp3");
   grlSound = loadSound("Assets/GhostCarnival/Sound/Track06.mp3");
-  prlSound = loadSound("Assets/GhostCarnival/Sound/Track05.mp3");
+  prlSound = loadSound("Assets/GhostCarnival/Sound/Track04.mp3");
+  clSound = loadSound("Assets/GhostCarnival/Sound/Track05.mp3");
   //---
 
   //-----Background Images
@@ -198,6 +233,10 @@ function setup() {
   //ghost race button 
   grEndButton = new mButton(640,340,200,70,30,255,94,28,255,2);
 
+  //advance to hub or room
+  advanceButton = new mButton(640,340,200,70,30,255,94,28,255,2);
+
+
    //create Player
   playerAvatar = new Player(25);
 
@@ -206,7 +245,7 @@ function setup() {
   
   //mini game
   score = new elementsUI(scMsg,scValue,50,35);
-  
+
   insTxWp = new elementsUI(insMsgLv1,insMsgLv1B,300,240);
   insTxWpEnd = new elementsUI(insMsLv1End,insMsLv1EndB,300,240);
   insTxWpWin = new elementsUI(insMsLv1Win,insMsLv1WinB,300,240);
@@ -220,6 +259,9 @@ function setup() {
   insTxgrEndPl = new elementsUI(grEndTxPl,grEndTxPlB,cnvW/2,cnvH/2);
   insTxgrEndgh = new elementsUI(grEndTxgh,grEndTxghB,cnvW/2,cnvH/2);
   insTxgrEndTie = new elementsUI(grEndTxTie,grEndTxTieB,cnvW/2,cnvH/2);
+
+  collect = new elementsUI(mCollectText,'.',cnvW/2,cnvH/2);
+  comeback = new elementsUI(mComebackText,'.',cnvW/2,cnvH/2);
 
   wpBooth = new fairBooth(100,100,200,100,255,255,255,2);
   grBooth = new fairBooth(600,100,200,100,255,255,255,3);
@@ -257,6 +299,7 @@ function keyPressed() {
   if((scene === 1) && (allowMovement === false)) {
     if(keyCode === ENTER) {
       goToScene2 = true;
+      return;
     }
   }
 
@@ -274,6 +317,14 @@ function keyPressed() {
     } else if (reachedfLine) {
       if (keyCode === 32) {
       return;
+      }
+    }
+  }
+
+  if(scene === 4) {
+    if(chestCounter === 4) {
+      if (keyCode === 32) {
+        roundEnded = true;
       }
     }
   }
@@ -317,6 +368,10 @@ function mousePressed() {
   if(scene === 3) {
     grEndButton.clicked();
   }
+
+  if(scene === 4) {
+    advanceButton.clicked();
+  }
   
 }
 
@@ -336,22 +391,32 @@ class elementsUI {
     this.x = xUI;
     this.y = yUI;
     this.size = 20;
+
+    this.rewardVal= 0;
+
+    this.tColorOpacity = 255;
+  }
+
+  chestReward(reVal) {
+    this.rewardVal += reVal;
+    this.message = 'Score: ' + this.rewardVal;
   }
 
   showUI () {
     textSize(this.size);
     strokeWeight(4);
-    fill(255);
+    fill(255,255,255);
     text(this.message,this.x,this.y);
   }
 
   upTextSize (nSize) {
+    push();
     textAlign(CENTER,CENTER);
     this.size = nSize;
     textSize(nSize);
-    fill(255,255,255);
+    fill(255,255,255,this.tColorOpacity);
     text(this.message,(this.x-10),this.y);
-    
+    pop(); 
   }
 
   update(upVal) {
@@ -382,11 +447,13 @@ class mButton {
     this.ucR = bcR;
     this.ucG = bcG;
     this.ucB = bcB;
+
+    this.cBopacity = 255;
   } 
 
   show() {
-    fill(this.cR,this.cG,this.cB);
-    stroke(this.s);
+    fill(this.cR,this.cG,this.cB,this.cBopacity);
+    stroke(this.s, this.cBopacity);
     strokeWeight(this.sW);
     rect(this.x,this.y,this.w,this.h,this.r);
   }
@@ -413,6 +480,23 @@ class mButton {
         
       if(scene === 3) {
         goToHub = true;
+      }
+
+      if(scene === 4) {
+        if(probabilityValue <= 5) {
+          pLocationReset(playerAvatar);
+          allowMovement = true;
+          moveSpeed = 6;
+          noCursor(); 
+          scene = 1;
+          goToScene2 = false;
+          assetsReady = false;
+          probabilityValue = 0;
+          clAvatar = null;
+        } else {
+          hideMsg = true;
+          noCursor();
+        }
       }
     }
   }
@@ -657,7 +741,7 @@ class Player {
   }
 }
 
-class Obstacle{
+class Obstacle {
   constructor () {
   this.wX = cnvW ; 
   this.wY = 50;
@@ -703,6 +787,83 @@ class Obstacle{
 
   wallMovement() {
     this.wX -= this.wSpeed;
+  }
+}
+
+class Collectable {
+  constructor (colX,colY) {
+    this.collectX = colX;
+    this.collectY = colY;
+   
+    this.wasPickedUp = false;
+    
+    this.collectRarity = floor(random(1,11));
+
+    if(this.collectRarity === 10) {
+      this.collectW = 110;
+      this.collectH = 110;
+      this.rewardValue = 500;
+      this.imageIndex = 3;
+      this.collectDescription = 'a Diamond Chest';
+    } else if(this.collectRarity >= 8) {
+      this.collectW = 100;
+      this.collectH = 60;
+      this.rewardValue = 100;
+      this.imageIndex = 2;
+      this.collectDescription = 'a Gold Chest';
+    } else if(this.collectRarity >= 5) {
+      this.collectW = 70;
+      this.collectH = 60;
+      this.rewardValue = 50;
+      this.imageIndex = 1;
+      this.collectDescription = 'a Silver Chest';
+    } else {
+      this.collectW = 70;
+      this.collectH = 60;
+      this.rewardValue = 10;
+      this.imageIndex = 0;
+      this.collectDescription = 'a Wood Chest';
+    }
+
+    this.collision_CoordinateX = this.collectX + (this.collectW/2);
+    this.collision_CoordinateY = this.collectY + (this.collectH/2);
+
+  }
+
+  showCollectable() {
+    if(this.wasPickedUp === false) {
+      image(chestSprite[this.imageIndex], this.collectX, this.collectY, this.collectW, this.collectH);
+      console.log(this.collision_CoordinateX);
+      console.log(this.collision_CoordinateY);
+
+      fill(255,0,0,0);
+      ellipse(this.collision_CoordinateX, this.collision_CoordinateY, clAvatar.ecR+13);
+    }
+  }
+
+  checkDistance(objP_ghost) {
+    let playerGhost = objP_ghost;
+
+    let p_centerX =playerGhost.eX; 
+    let p_centerY =playerGhost.eY;
+
+    let c_centerX =this.collision_CoordinateX; 
+    let c_centerY =this.collision_CoordinateY; 
+
+    if(this.wasPickedUp) {
+      return 0;
+    }
+
+    let rad_sum = ((playerGhost.ecR/2) + ((clAvatar.ecR+13)/2));
+  
+    let distance = dist(c_centerX,c_centerY, p_centerX,p_centerY);
+
+    if(distance < rad_sum) {
+      this.wasPickedUp = true;
+      chestCounter+= 1;
+      return this.rewardValue;
+    }
+    return 0; 
   }
 }
 
@@ -766,7 +927,6 @@ function wallPhaseLv() {
   let scoreTracking = 0;
   let area = 'wpLv';
   
-
   noCursor();
   soundManager(area);
 
@@ -781,7 +941,6 @@ function wallPhaseLv() {
 
   score.showUI();
 
-  
   if(wplGhost === null) {
     winConditionTriggerValue = floor(random(5,50));
     wplGhost = new Player(50);
@@ -795,7 +954,7 @@ function wallPhaseLv() {
   push();
   fill(255);
   textSize(20);
-  text('Traps Remaining: ' + max(0,nTraps), 600, 35);
+  text('Traps Remaining: ' + max(0,nTraps), 660, 35);
   pop();
 
   if(frameCount % floor(spawnWalls) === 0) {
@@ -909,8 +1068,8 @@ function ghostRaceLv() {
   let area = 'grLv';
 
   let message = 'BACK';
-  let mW = 740;
-  let mH = 376;
+  let mW = 685;
+  let mH = 385;
   let mC = 0;
     
   let scoreTracking = 0;
@@ -1033,15 +1192,194 @@ function ghostRaceLv() {
 }
 
 function chaseLv() {
-  
+  noCursor();
+  let area = 'cLv';
+  let playerSize = 50;
+  let scorebg = 50;
+  let scoreTracking = 0;
+ 
+  soundManager(area);
+
+  if(assetsReady === false) {
+    clAvatar = new Player(playerSize);
+    chestOne = new Collectable(225,125);
+    chestTwo = new Collectable(615,125);
+    chestThree = new Collectable(225,315);
+    chestFour = new Collectable(615,315);
+
+    probabilityValue = floor(random(1,11));
+
+    assetsReady = true;
+  }
+
   image(clBackground,posX,posY,cnvW,cnvH);
+
+  if(probabilityValue > 5) { 
+    push()
+    fill(0,0,0);
+    rect(0,0,cnvW,scorebg);
+    pop();
+  score.showUI(scoreTracking);
+  }
+  if(hideMsg === false && probabilityValue !== null) {
+    showMessage(probabilityValue); 
+  }
+  
+  if(probabilityValue > 5 && hideMsg) {
+    clAvatar.eX = constrain(clAvatar.eX,playerSize,(cnvW - playerSize));
+    clAvatar.eY = constrain(clAvatar.eY,(playerSize + 24),(cnvH - 72));
+
+    if(chestCounter  <4) {
+      allowMovement = true;
+      moveSpeed = 6;
+    } else {
+      allowMovement = false;
+      moveSpeed = 0;
+    }
+
+    chestOne.showCollectable();
+    chestTwo.showCollectable();
+    chestThree.showCollectable();
+    chestFour.showCollectable();
+
+    clAvatar.showHub();
+    clAvatar.move();
+
+    scoreTracking += chestOne.checkDistance(clAvatar);
+    scoreTracking += chestTwo.checkDistance(clAvatar);
+    scoreTracking += chestThree.checkDistance(clAvatar);
+    scoreTracking += chestFour.checkDistance(clAvatar);
+    
+    if(scoreTracking > 0) {
+      scValue = scoreTracking
+      score.chestReward(scValue);
+      console.log(chestCounter);
+      }
+    }
+
+    if(chestCounter == 4) {
+      push();
+      fill(0,0,0,190);
+      rect(0,0,cnvW,cnvH);
+      pop();
+
+      push();
+      fill(255);
+      textSize(30);
+      text('Press (SPACE) to return to the Hub', 200, 250);
+      pop();
+
+    }
+
+    if(roundEnded == true) {
+      pLocationReset(playerAvatar);
+
+      pValue += score.rewardVal;
+      points.update(pValue);
+
+      clAvatar = null;
+      chestOne = null;
+      chestTwo = null;
+      chestThree = null;
+      chestFour = null;
+      assetsReady = false;
+
+      hideMsg = false;
+
+      allowMovement = true;
+      chestCounter = 0;
+      moveSpeed = 6;
+      scoreTracking = 0;
+      probabilityValue = null;
+      goToHub = false;
+      goToScene2 = false;
+      
+      scValue = 0;
+      score.rewardVal = 0;
+      score.update(scValue);
+
+      roundEnded = false;
+      
+      scene = 1; 
+    }
 }
 
 function prizeLv() {
+  cursor(ARROW);
   let area = 'prLv';
   soundManager(area);
 
+
+  if(!getting_Balance) {
+    if(avail_Balance !== 0 || avail_Balance !== null){
+      avail_Balance += pValue;
+    } else {
+      avail_Balance = 0;
+    }
+    getting_Balance = true;
+  }
+
+  console.log(avail_Balance);
+
+
+  item1_isSold = false;
+  item2_isSold = false;
+  item3_isSold = false;
+
   image(plBackground,posX,posY,cnvW,cnvH);
+
+  if(!item1_isSold) {
+    push();
+    if(mouseX >= 100 && mouseX <= 250 && mouseY >= 162 && mouseY <= 312) {
+      stroke(35,101,51); 
+    }else {
+      stroke(255,126,0);
+    }
+    strokeWeight(4);
+    fill(126,126,126);
+    rect(100,162,150,150,30);
+    push();
+    tint(158,189,144);
+    image(playerSprite[0],125,187,100,100);
+    pop();
+    pop();
+  }
+
+  if(!item2_isSold) {
+    push();
+    if(mouseX >= 380 && mouseX <= 530 && mouseY >= 162 && mouseY <= 312) {
+      stroke(35,101,51); 
+    }else {
+      stroke(255,126,0);
+    }
+    strokeWeight(4);
+    fill(126,126,126);
+    rect(380,162,150,150,30);
+    push();
+    tint(255,177,203);
+    image(playerSprite[0],405,187,100,100);
+    pop();
+    pop();
+  }
+
+  if(!item3_isSold) {
+    push();
+    if(mouseX >= 650 && mouseX <= 800 && mouseY >= 162 && mouseY <= 312) {
+      stroke(35,101,51);
+    }else {
+      stroke(255,126,0);
+    }
+    strokeWeight(4);
+    fill(126,126,126);
+    rect(650,162,150,150,30);
+    push();
+    tint(250,200,84);
+    image(playerSprite[0],675,187,100,100);
+    pop();
+    pop();
+  }
+
+
 }
 
 function rStartUp() {
@@ -1094,6 +1432,10 @@ function soundManager(sA) {
     if(prlSound.isPlaying()) {
       prlSound.stop();
     }
+    
+    if(clSound.isPlaying()) {
+      clSound.stop();
+    }
 
     if(!mlSound.isPlaying()) {
       mlSound.play();
@@ -1119,11 +1461,15 @@ function soundManager(sA) {
       prlSound.stop();
     }
 
+    if(clSound.isPlaying()) {
+      clSound.stop();
+    }
+
     if(!wplSound.isPlaying()) {
       wplSound.play();
     }
 
-    if(roundEnd === true) {
+    if(roundEnded === true) {
       wplSound.stop();
     }
   }
@@ -1145,7 +1491,75 @@ function soundManager(sA) {
     
     if(prlSound.isPlaying()) {
       prlSound.stop();
-    }    
+    }
+
+    if(clSound.isPlaying()) {
+      clSound.stop();
+    }
+    
+    if(!grlSound.isPlaying()) {
+      grlSound.play();
+    }
+
+    if(roundEnded === true) {
+      grlSound.stop();
+    }
+  }
+
+  if (sA === 'prLv') {
+    prlSound.setVolume(0.25);
+
+    if(mmSound.isPlaying()) {
+      mmSound.stop();
+    }
+
+    if(mlSound.isPlaying()) {
+      mlSound.stop();
+    }
+
+    if(wplSound.isPlaying()) {
+      wplSound.stop();
+    }
+
+    if(grlSound.isPlaying()) {
+      grlSound.stop();
+    }
+
+    if(clSound.isPlaying()) {
+      clSound.stop();
+    }
+
+    if(!prlSound.isPlaying()) {
+      prlSound.play();
+    }
+  }
+
+  if (sA === 'cLv') {
+    clSound.setVolume(0.25);
+
+    if(mmSound.isPlaying()) {
+      mmSound.stop();
+    }
+
+    if(mlSound.isPlaying()) {
+      mlSound.stop();
+    }
+
+    if(wplSound.isPlaying()) {
+      wplGhost.stop();
+    }
+
+    if(grlSound.isPlaying()) {
+      grlSound.stop();
+    }
+
+    if(prlSound.isPlaying()) {
+      prlSound.stop();
+    }
+
+    if(!clSound.isPlaying()) {
+      clSound.play();
+    }
   }
 }
 
@@ -1158,4 +1572,55 @@ function pLocationReset(pObj) {
 function roundEnd(value) {
   let val = value;
   return value;
+}
+
+function showMessage(pV){
+  cursor(ARROW);
+  let value = pV;
+  //console.log(value);
+
+  let tcO = 255;
+  let bgOpacity = 190;
+
+  if(hideMsg === true) {
+    bgOpacity = 0;
+    collect.tColorOpacity = 0;
+    comeback.tColorOpacity = 0;
+    advanceButton.cBopacity = 0;
+    tcO = 0;
+    noCursor();
+  }
+
+  let tSize = 30;
+  let tX = 660;
+  let tY = 385;
+  let bText;
+
+  push();
+  fill(0,0,0,bgOpacity);
+  rect(0,0,cnvW,cnvH);
+  pop();
+  if (value <= 5){
+    //console.log(probabilityValue);
+    comeback.upTextSize(30);
+    
+    bText = 'Back to Hub';
+  } else {
+    //console.log(probabilityValue);
+    collect.upTextSize(30);
+    bText = 'Enter Room';
+  }
+
+  if(hideMsg === false) {
+    push();
+    advanceButton.highlight();
+    advanceButton.show();
+    pop();  
+  }
+
+  push();
+  fill(0,0,0,tcO);
+  textSize(tSize);
+  text(bText,tX,tY);
+  pop();
 }
