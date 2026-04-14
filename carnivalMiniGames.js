@@ -1152,7 +1152,7 @@ function ghostRaceLv() {
    grPlayerGhost = new Player(50);
    grOpponentGhost = new Player(50);
    
-   grPlayerGhost.grlMkGh(100,125,100,255,0,0,255,255,12);
+   grPlayerGhost.grlMkGh(100,125,100,255,0,0,255,255,14);
    grOpponentGhost.grlMkGh(100,375,100,0,0,255,255,255,2);
    initGrL = true;
   }
