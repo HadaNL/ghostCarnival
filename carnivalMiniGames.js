@@ -46,7 +46,13 @@ let chestFour = null;
 //variables scene 5
 let getting_Balance = false;
 let avail_Balance = 0;
-
+let price1 = 2000;
+let price2 = 5000;
+let price3 = 10000;
+let item1_isSold = false;
+let item2_isSold = false;
+let item3_isSold = false;
+let exitButton;
 
 //hub
 let pValue = 0;
@@ -223,7 +229,6 @@ function setup() {
   ciX = ((globX-cnvW)/2);
   ciY = ((globY-cnvH)/2);
   
-
   //position canvas in the center
   cnv.position(ciX, ciY);
 
@@ -236,6 +241,7 @@ function setup() {
   //advance to hub or room
   advanceButton = new mButton(640,340,200,70,30,255,94,28,255,2);
 
+  exitButton = new mButton(650,380,200,70,30,255,94,28,255,2);
 
    //create Player
   playerAvatar = new Player(25);
@@ -372,7 +378,39 @@ function mousePressed() {
   if(scene === 4) {
     advanceButton.clicked();
   }
+
+  if(scene === 5) {
+    exitButton.clicked();
+  }
   
+  if(scene === 5) {
+    if(!item1_isSold && avail_Balance >= price1) {
+      if(mouseX >= 100 && mouseX <= 250 && mouseY >= 162 && mouseY <= 312) {
+      avail_Balance -=price1;
+      pValue = avail_Balance;
+      item1_isSold = true;
+      playerAvatar.currentTint = color(158,189,144);
+      }
+    }
+
+    if(!item2_isSold && avail_Balance >= price2) {
+      if(mouseX >= 380 && mouseX <= 530 && mouseY >= 162 && mouseY <= 312) {
+      avail_Balance -=price2;
+      pValue = avail_Balance;
+      item2_isSold = true;
+      playerAvatar.currentTint = color(255,177,203);
+      }
+    }
+
+    if(!item3_isSold && avail_Balance >= price3) {
+      if(mouseX >= 650 && mouseX <= 800 && mouseY >= 162 && mouseY <= 312) {
+      avail_Balance -=price3;
+      pValue = avail_Balance;
+      item3_isSold = true;
+      playerAvatar.currentTint = color(250,207,84);
+      }
+    }   
+  }
 }
 
 function mouseReleased() {
@@ -498,6 +536,28 @@ class mButton {
           noCursor();
         }
       }
+
+
+      if(scene === 5) {
+        pValue = avail_Balance;
+        points.update(pValue);
+
+        getting_Balance = false;
+        roundEnded = false;
+
+        pLocationReset(playerAvatar);
+        allowMovement = true;
+        moveSpeed = 6;
+
+        goToHub = false;
+        goToScene2 = false;
+        
+
+        noCursor();
+
+        scene = 1;
+
+      }
     }
   }
 }
@@ -604,6 +664,8 @@ class Player {
     this.eB = 0;
     this.eA = 0;
 
+    this.currentTint = color(255,255,255);
+
     this.isPhasing = false;
     this.imgOpacity = 255;
 
@@ -672,6 +734,12 @@ class Player {
     let ghostW = 50;
     let ghostH = 50;
 
+    push();
+
+    if(this.currentTint) {
+      tint(this.currentTint);
+    }
+
     if(!allowMovement || (!aIsPressed && !dIsPressed && !sIsPressed && !wIsPressed)) {
       image(playerSprite[0],this.eX - xOffset,this.eY - yOffset, ghostW, ghostH); 
     } else if(aIsPressed && (dIsPressed || wIsPressed || sIsPressed) || dIsPressed && (wIsPressed || sIsPressed || aIsPressed) || wIsPressed && (aIsPressed || sIsPressed || dIsPressed) || sIsPressed && (wIsPressed || aIsPressed || dIsPressed)) {
@@ -688,6 +756,7 @@ class Player {
       }
     //ellipse(this.eX, this.eY, this.ecR);
     }
+    pop();
   }
      
   move() {
@@ -1082,8 +1151,8 @@ function ghostRaceLv() {
   if(initGrL === false) {
    grPlayerGhost = new Player(50);
    grOpponentGhost = new Player(50);
-   //10.5 spped for player on show day
-   grPlayerGhost.grlMkGh(100,125,100,255,0,0,255,255,14);
+   
+   grPlayerGhost.grlMkGh(100,125,100,255,0,0,255,255,10.5);
    grOpponentGhost.grlMkGh(100,375,100,0,0,255,255,255,2);
    initGrL = true;
   }
@@ -1202,6 +1271,7 @@ function chaseLv() {
 
   if(assetsReady === false) {
     clAvatar = new Player(playerSize);
+    clAvatar.currentTint = playerAvatar.currentTint;
     chestOne = new Collectable(225,125);
     chestTwo = new Collectable(615,125);
     chestThree = new Collectable(225,315);
@@ -1311,22 +1381,26 @@ function prizeLv() {
 
 
   if(!getting_Balance) {
-    if(avail_Balance !== 0 || avail_Balance !== null){
-      avail_Balance += pValue;
-    } else {
-      avail_Balance = 0;
-    }
+    avail_Balance = pValue;
     getting_Balance = true;
   }
 
-  console.log(avail_Balance);
-
-
-  item1_isSold = false;
-  item2_isSold = false;
-  item3_isSold = false;
-
   image(plBackground,posX,posY,cnvW,cnvH);
+
+  push();
+  push();
+  fill(0,0,0)
+  rect(0,25,300,50);
+  pop();
+  fill(255);
+  textSize(20);
+  text('Balance: ' + avail_Balance,10,55);
+  pop();
+
+  if(avail_Balance >= price1) {
+    canBuy1 = true;
+  }
+
 
   if(!item1_isSold) {
     push();
@@ -1343,6 +1417,10 @@ function prizeLv() {
     image(playerSprite[0],125,187,100,100);
     pop();
     pop();
+    push();
+    fill(255);
+    text('$' + price1, 140,337);
+    pop();   
   }
 
   if(!item2_isSold) {
@@ -1360,6 +1438,10 @@ function prizeLv() {
     image(playerSprite[0],405,187,100,100);
     pop();
     pop();
+    push();
+    fill(255);
+    text('$' + price2, 420,337);
+    pop();
   }
 
   if(!item3_isSold) {
@@ -1376,10 +1458,22 @@ function prizeLv() {
     tint(250,200,84);
     image(playerSprite[0],675,187,100,100);
     pop();
+    pop();push();
+    fill(255);
+    text('$' + price3, 690,337);
     pop();
   }
 
+  push();
+  exitButton.highlight();
+  exitButton.show();
+  pop();
 
+  push();
+  fill(255);
+  textSize(25);
+  text('Exit Shop',700,423);
+  pop();
 }
 
 function rStartUp() {
