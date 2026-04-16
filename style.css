@@ -1,0 +1,11 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  text-align: center;
+  color: white;
+}
+
+canvas {
+  display: block;
+}
